@@ -26,8 +26,8 @@ export default function App() {
   >(null);
 
   const displayName =
-    user?.firstName ??
     user?.fullName ??
+    user?.firstName ??
     user?.username ??
     user?.primaryEmailAddress?.emailAddress ??
     "there";

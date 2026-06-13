@@ -23,6 +23,7 @@ export default function SignUp() {
   const [emailAddress, setEmailAddress] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [code, setCode] = React.useState("");
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const submitting = fetchStatus === "fetching";
 
@@ -148,14 +149,26 @@ export default function SignUp() {
 
             <View className="auth-field">
               <Text className="auth-label">Password</Text>
-              <TextInput
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Create a strong password"
-                placeholderTextColor="rgba(0,0,0,0.4)"
-                secureTextEntry
-                className="auth-input"
-              />
+              <View className="justify-center">
+                <TextInput
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Create a strong password"
+                  placeholderTextColor="rgba(0,0,0,0.4)"
+                  secureTextEntry={!showPassword}
+                  className="auth-input"
+                  style={{ paddingRight: 64 }}
+                />
+                <Pressable
+                  onPress={() => setShowPassword((v) => !v)}
+                  hitSlop={8}
+                  className="absolute bottom-0 right-4 top-0 justify-center"
+                >
+                  <Text className="text-sm font-sans-semibold text-accent">
+                    {showPassword ? "Hide" : "Show"}
+                  </Text>
+                </Pressable>
+              </View>
               {errors.fields.password ? (
                 <Text className="auth-error">
                   {errors.fields.password.message}

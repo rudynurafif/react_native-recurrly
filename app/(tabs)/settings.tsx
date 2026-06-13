@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { useRouter } from "expo-router";
 import { styled } from "nativewind";
 import React from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
 
 const SafeAreaView = styled(RNSafeAreaView);
@@ -29,8 +29,13 @@ const Settings = () => {
   const router = useRouter();
 
   const onSignOut = async () => {
-    await signOut();
-    router.replace("/(auth)/sign-in");
+    try {
+      await signOut();
+      router.replace("/(auth)/sign-in");
+    } catch (err) {
+      console.error("Sign out failed:", err);
+      Alert.alert("Sign out failed", "Please try again.");
+    }
   };
 
   const avatarSource = user?.imageUrl ? { uri: user.imageUrl } : images.avatar;
