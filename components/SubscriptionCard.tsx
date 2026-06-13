@@ -60,7 +60,7 @@ const SubscriptionCard = ({
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {paymentMethod?.trim()}
+                {paymentMethod?.trim() || "-"}
               </Text>
             </View>
             <View className="sub-row">
@@ -70,7 +70,7 @@ const SubscriptionCard = ({
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {category?.trim() || plan?.trim()}
+                {category?.trim() || plan?.trim() || "-"}
               </Text>
             </View>
             <View className="sub-row">
@@ -84,7 +84,7 @@ const SubscriptionCard = ({
               </Text>
             </View>
             <View className="sub-row">
-              <Text className="sub-label">Renewal date:: </Text>
+              <Text className="sub-label">Renewal date: </Text>
               <Text
                 className="sub-value"
                 numberOfLines={1}
