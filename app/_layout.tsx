@@ -2,7 +2,6 @@ import "@/global.css";
 import { ClerkProvider } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { useFonts } from "expo-font";
-import * as NavigationBar from "expo-navigation-bar";
 import { SplashScreen, Stack, useGlobalSearchParams, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef } from "react";
@@ -49,11 +48,15 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
-  // App background is always light, so use dark Android nav bar buttons.
+  // App background is always light → dark Android nav bar buttons.
+  // Lazy-loaded + guarded so a build without the native module won't crash.
   useEffect(() => {
-    if (Platform.OS === "android") {
-      NavigationBar.setButtonStyleAsync("dark");
-    }
+    if (Platform.OS !== "android") return;
+    import("expo-navigation-bar")
+      .then((NavigationBar) => NavigationBar.setButtonStyleAsync("dark"))
+      .catch(() => {
+        // Native module not in this build yet — rebuild to enable. Ignore for now.
+      });
   }, []);
 
   useEffect(() => {
