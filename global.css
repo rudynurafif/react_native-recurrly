@@ -291,7 +291,7 @@
   }
 
   .auth-input {
-    @apply rounded-2xl border border-border bg-background pl-4 pr-4 py-4 text-base font-sans-medium text-primary;
+    @apply rounded-2xl border border-border bg-background pl-4 pr-4 py-4 text-[16px] font-sans-medium text-primary;
   }
 
   .auth-input-error {
@@ -351,7 +351,7 @@
   }
 
   .modal-overlay {
-    @apply flex-1 bg-black/50;
+    @apply flex-1 bg-black/60;
   }
 
   .modal-container {

@@ -1,13 +1,11 @@
+import CreateSubscriptionModal from "@/components/CreateSubscriptionModal";
 import ListHeading from "@/components/ListHeading";
 import SubscriptionCard from "@/components/SubscriptionCard";
 import UpcomingSubscriptionCard from "@/components/UpcomingSubscriptionCard";
-import {
-  HOME_BALANCE,
-  HOME_SUBSCRIPTIONS,
-  UPCOMING_SUBSCRIPTIONS,
-} from "@/constants/data";
+import { HOME_BALANCE, UPCOMING_SUBSCRIPTIONS } from "@/constants/data";
 import { icons } from "@/constants/icons";
 import images from "@/constants/images";
+import { useSubscriptions } from "@/context/subscriptions";
 import "@/global.css";
 import { formatCurrency } from "@/lib/utils";
 import { useUser } from "@clerk/expo";
@@ -15,7 +13,14 @@ import dayjs from "dayjs";
 import { styled } from "nativewind";
 import { useState } from "react";
 import { usePostHog } from "posthog-react-native";
-import { FlatList, Image, Text, View } from "react-native";
+import {
+  FlatList,
+  Image,
+  Pressable,
+  RefreshControl,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
 
 const SafeAreaView = styled(RNSafeAreaView);
@@ -23,9 +28,31 @@ const SafeAreaView = styled(RNSafeAreaView);
 export default function App() {
   const { user } = useUser();
   const posthog = usePostHog();
+  const { subscriptions, addSubscription, resetSubscriptions } =
+    useSubscriptions();
   const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<
     string | null
   >(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleCreateSubscription = (subscription: Subscription) => {
+    addSubscription(subscription);
+    posthog.capture("subscription_created", {
+      subscription_id: subscription.id,
+      subscription_name: subscription.name,
+      category: subscription.category ?? null,
+      frequency: subscription.frequency ?? null,
+    });
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    // Re-load the source data — locally added subscriptions are discarded.
+    resetSubscriptions();
+    posthog.capture("subscriptions_refreshed");
+    setRefreshing(false);
+  };
 
   const displayName =
     user?.fullName ??
@@ -47,7 +74,9 @@ export default function App() {
                 <Text className="home-user-name">{displayName}</Text>
               </View>
 
-              <Image source={icons.add} className="home-add-icon" />
+              <Pressable onPress={() => setIsModalVisible(true)} hitSlop={8}>
+                <Image source={icons.add} className="home-add-icon" />
+              </Pressable>
             </View>
 
             <View className="home-balance-card">
@@ -83,7 +112,7 @@ export default function App() {
             <ListHeading title="All Subscriptions" />
           </>
         )}
-        data={HOME_SUBSCRIPTIONS}
+        data={subscriptions}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <SubscriptionCard
@@ -109,10 +138,24 @@ export default function App() {
         extraData={expandedSubscriptionId}
         ItemSeparatorComponent={() => <View className="h-4" />}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#ea7a53"
+            colors={["#ea7a53"]}
+          />
+        }
         ListEmptyComponent={() => (
           <Text className="home-empty-state">No subscriptions yet.</Text>
         )}
         contentContainerClassName="pb-20"
+      />
+
+      <CreateSubscriptionModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onCreate={handleCreateSubscription}
       />
     </SafeAreaView>
   );
