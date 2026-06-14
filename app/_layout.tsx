@@ -18,6 +18,15 @@ if (!publishableKey) {
 
 SplashScreen.preventAutoHideAsync();
 
+// Drop auth/secret-bearing query params (e.g. Clerk tickets, OAuth codes) from analytics.
+const SENSITIVE_PARAM_KEY =
+  /token|code|secret|password|ticket|state|session|__clerk/i;
+
+const sanitizeParams = (params: Record<string, unknown>) =>
+  Object.fromEntries(
+    Object.entries(params).filter(([key]) => !SENSITIVE_PARAM_KEY.test(key)),
+  );
+
 export default function RootLayout() {
   const pathname = usePathname();
   const params = useGlobalSearchParams();
@@ -42,7 +51,7 @@ export default function RootLayout() {
     if (previousPathname.current !== pathname) {
       posthog.screen(pathname, {
         previous_screen: previousPathname.current ?? null,
-        ...params,
+        ...sanitizeParams(params),
       });
       previousPathname.current = pathname;
     }
