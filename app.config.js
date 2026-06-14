@@ -18,10 +18,8 @@ export default {
     android: {
       package: "com.rudynurafif.recurrly",
       adaptiveIcon: {
-        backgroundColor: "#E6F4FE",
-        foregroundImage: "./assets/images/android-icon-foreground.png",
-        backgroundImage: "./assets/images/android-icon-background.png",
-        monochromeImage: "./assets/images/android-icon-monochrome.png",
+        foregroundImage: "./assets/icons/logo.png",
+        backgroundColor: "#ea7a53",
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
@@ -36,11 +34,11 @@ export default {
         "expo-splash-screen",
         {
           image: "./assets/images/splash-pattern.png",
-          imageWidth: 200,
+          imageWidth: 240,
           resizeMode: "contain",
-          backgroundColor: "#ffffff",
+          backgroundColor: "#ea7a53",
           dark: {
-            backgroundColor: "#000000",
+            backgroundColor: "#ea7a53",
           },
         },
       ],

@@ -28,8 +28,7 @@ const SafeAreaView = styled(RNSafeAreaView);
 export default function App() {
   const { user } = useUser();
   const posthog = usePostHog();
-  const { subscriptions, addSubscription, resetSubscriptions } =
-    useSubscriptions();
+  const { subscriptions, addSubscription, refresh } = useSubscriptions();
   const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<
     string | null
   >(null);
@@ -47,10 +46,10 @@ export default function App() {
     });
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setRefreshing(true);
-    // Re-load the source data — locally added subscriptions are discarded.
-    resetSubscriptions();
+    // Re-fetch from the API (falls back to dummy data if it's down).
+    await refresh();
     posthog.capture("subscriptions_refreshed");
     setRefreshing(false);
   };

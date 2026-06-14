@@ -2,9 +2,11 @@ import "@/global.css";
 import { ClerkProvider } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { useFonts } from "expo-font";
+import * as NavigationBar from "expo-navigation-bar";
 import { SplashScreen, Stack, useGlobalSearchParams, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef } from "react";
+import { Platform } from "react-native";
 import { PostHogProvider } from "posthog-react-native";
 import { posthog } from "../src/config/posthog";
 
@@ -46,6 +48,13 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  // App background is always light, so use dark Android nav bar buttons.
+  useEffect(() => {
+    if (Platform.OS === "android") {
+      NavigationBar.setButtonStyleAsync("dark");
+    }
+  }, []);
 
   useEffect(() => {
     if (previousPathname.current !== pathname) {
