@@ -33,6 +33,7 @@ const Settings = () => {
   const onSignOut = async () => {
     try {
       posthog.capture("user_signed_out");
+      await posthog.flush();
       posthog.reset();
       await signOut();
       router.replace("/(auth)/sign-in");

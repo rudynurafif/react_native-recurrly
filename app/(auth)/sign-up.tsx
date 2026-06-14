@@ -40,7 +40,7 @@ export default function SignUp() {
     if (error) return;
 
     if (signUp.status === "complete") {
-      const email = signUp.emailAddress ?? emailAddress;
+      const email = (signUp.emailAddress ?? emailAddress).trim().toLowerCase();
       posthog.identify(email, {
         $set: { email },
         $set_once: { sign_up_date: new Date().toISOString() },

@@ -109,7 +109,7 @@ npx expo run:android
 
 ### Configuration
 
-PostHog is configured in `src/config/posthog.ts` using environment variables from `app.json`:
+PostHog is configured in `src/config/posthog.ts` using environment variables from `app.config.js`:
 
 ```typescript
 import Constants from 'expo-constants'
@@ -181,13 +181,13 @@ export function useAuth() {
 
 ### New Architecture
 
-Enabled in `app.json` for better performance:
+Enabled in `app.config.js` for better performance:
 
-```json
-{
-  "expo": {
-    "newArchEnabled": true
-  }
+```js
+export default {
+  expo: {
+    newArchEnabled: true,
+  },
 }
 ```
 

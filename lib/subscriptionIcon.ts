@@ -18,8 +18,9 @@ const NAME_ICONS: { match: string[]; icon: SubscriptionIconName }[] = [
   { match: ["xbox"], icon: "microsoft-xbox" },
   { match: ["playstation", "psn"], icon: "sony-playstation" },
   { match: ["dropbox"], icon: "dropbox" },
-  { match: ["google drive", "gdrive", "drive"], icon: "google-drive" },
-  { match: ["microsoft", "office", "onedrive", "365"], icon: "microsoft-office" },
+  { match: ["onedrive"], icon: "microsoft-office" },
+  { match: ["google drive", "gdrive"], icon: "google-drive" },
+  { match: ["microsoft", "office", "365"], icon: "microsoft-office" },
   { match: ["google", "gmail"], icon: "google" },
   { match: ["apple", "icloud", "itunes"], icon: "apple" },
   {

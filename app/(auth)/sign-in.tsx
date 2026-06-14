@@ -29,7 +29,7 @@ export default function SignIn() {
   const submitting = fetchStatus === "fetching";
 
   const finalize = async () => {
-    const email = emailAddress;
+    const email = emailAddress.trim().toLowerCase();
     posthog.identify(email, {
       $set: { email },
       $set_once: { first_sign_in_date: new Date().toISOString() },

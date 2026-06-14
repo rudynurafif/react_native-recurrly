@@ -8,6 +8,7 @@ const SubscriptionDetails = () => {
   const posthog = usePostHog();
 
   useEffect(() => {
+    if (typeof id !== "string") return;
     posthog.capture("subscription_details_viewed", { subscription_id: id });
   }, [id, posthog]);
 

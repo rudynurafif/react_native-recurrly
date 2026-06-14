@@ -11,8 +11,8 @@ import { formatCurrency } from "@/lib/utils";
 import { useUser } from "@clerk/expo";
 import dayjs from "dayjs";
 import { styled } from "nativewind";
-import { useState } from "react";
 import { usePostHog } from "posthog-react-native";
+import { useState } from "react";
 import {
   FlatList,
   Image,
@@ -41,8 +41,9 @@ export default function App() {
     posthog.capture("subscription_created", {
       subscription_id: subscription.id,
       subscription_name: subscription.name,
-      category: subscription.category ?? null,
-      frequency: subscription.frequency ?? null,
+      subscription_price: subscription.price,
+      subscription_category: subscription.category || "Other",
+      subscription_frequency: subscription.frequency || "Monthly",
     });
   };
 
