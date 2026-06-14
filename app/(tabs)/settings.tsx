@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import { useRouter } from "expo-router";
 import { styled } from "nativewind";
 import React from "react";
+import { usePostHog } from "posthog-react-native";
 import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
 
@@ -27,9 +28,12 @@ const Settings = () => {
   const { user } = useUser();
   const { signOut } = useClerk();
   const router = useRouter();
+  const posthog = usePostHog();
 
   const onSignOut = async () => {
     try {
+      posthog.capture("user_signed_out");
+      posthog.reset();
       await signOut();
       router.replace("/(auth)/sign-in");
     } catch (err) {

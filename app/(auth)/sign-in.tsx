@@ -3,6 +3,7 @@ import { useSignIn } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import { styled } from "nativewind";
 import React from "react";
+import { usePostHog } from "posthog-react-native";
 import {
   ActivityIndicator,
   Pressable,
@@ -18,6 +19,7 @@ const SafeAreaView = styled(RNSafeAreaView);
 export default function SignIn() {
   const { signIn, errors, fetchStatus } = useSignIn();
   const router = useRouter();
+  const posthog = usePostHog();
 
   const [emailAddress, setEmailAddress] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -27,6 +29,12 @@ export default function SignIn() {
   const submitting = fetchStatus === "fetching";
 
   const finalize = async () => {
+    const email = emailAddress;
+    posthog.identify(email, {
+      $set: { email },
+      $set_once: { first_sign_in_date: new Date().toISOString() },
+    });
+    posthog.capture("user_signed_in", { email });
     await signIn.finalize({
       navigate: ({ session }) => {
         // Pending session tasks (e.g. org selection) — let the flow handle them.
