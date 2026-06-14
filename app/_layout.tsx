@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack, useGlobalSearchParams, usePathname } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef } from "react";
 import { PostHogProvider } from "posthog-react-native";
 import { posthog } from "../src/config/posthog";
@@ -59,6 +60,7 @@ export default function RootLayout() {
       }}
     >
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+        <StatusBar style="dark" />
         <Stack screenOptions={{ headerShown: false }} />
       </ClerkProvider>
     </PostHogProvider>
