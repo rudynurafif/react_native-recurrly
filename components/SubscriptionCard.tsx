@@ -3,8 +3,9 @@ import {
   formatStatusLabel,
   formatSubscriptionDateTime,
 } from "@/lib/utils";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import clsx from "clsx";
-import React from "react";
+import React, { type ComponentProps } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 
 const SubscriptionCard = ({
@@ -12,6 +13,7 @@ const SubscriptionCard = ({
   price,
   currency,
   icon,
+  iconName,
   billing,
   color,
   category,
@@ -31,7 +33,21 @@ const SubscriptionCard = ({
     >
       <View className="sub-head">
         <View className="sub-main">
-          <Image source={icon} className="sub-icon" />
+          {iconName ? (
+            <View className="sub-icon">
+              <MaterialCommunityIcons
+                name={
+                  iconName as ComponentProps<
+                    typeof MaterialCommunityIcons
+                  >["name"]
+                }
+                size={64}
+                color="#081126"
+              />
+            </View>
+          ) : (
+            <Image source={icon} className="sub-icon" />
+          )}
           <View className="sub-copy">
             <Text numberOfLines={1} className="sub-title">
               {name}

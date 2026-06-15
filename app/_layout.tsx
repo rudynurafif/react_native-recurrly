@@ -2,8 +2,12 @@ import "@/global.css";
 import { ClerkProvider } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { useFonts } from "expo-font";
-import { SplashScreen, Stack } from "expo-router";
-import { useEffect } from "react";
+import { SplashScreen, Stack, useGlobalSearchParams, usePathname } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useRef } from "react";
+import { Platform } from "react-native";
+import { PostHogProvider } from "posthog-react-native";
+import { posthog } from "../src/config/posthog";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -15,7 +19,20 @@ if (!publishableKey) {
 
 SplashScreen.preventAutoHideAsync();
 
+// Drop auth/secret-bearing query params (e.g. Clerk tickets, OAuth codes) from analytics.
+const SENSITIVE_PARAM_KEY =
+  /token|code|secret|password|ticket|state|session|__clerk/i;
+
+const sanitizeParams = (params: Record<string, unknown>) =>
+  Object.fromEntries(
+    Object.entries(params).filter(([key]) => !SENSITIVE_PARAM_KEY.test(key)),
+  );
+
 export default function RootLayout() {
+  const pathname = usePathname();
+  const params = useGlobalSearchParams();
+  const previousPathname = useRef<string | undefined>(undefined);
+
   const [fontsLoaded] = useFonts({
     "sans-regular": require("../assets/fonts/PlusJakartaSans-Regular.ttf"),
     "sans-medium": require("../assets/fonts/PlusJakartaSans-Medium.ttf"),
@@ -31,11 +48,42 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
+  // App background is always light → dark Android nav bar buttons.
+  // Lazy-loaded + guarded so a build without the native module won't crash.
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    import("expo-navigation-bar")
+      .then((NavigationBar) => NavigationBar.setButtonStyleAsync("dark"))
+      .catch(() => {
+        // Native module not in this build yet — rebuild to enable. Ignore for now.
+      });
+  }, []);
+
+  useEffect(() => {
+    if (previousPathname.current !== pathname) {
+      posthog.screen(pathname, {
+        previous_screen: previousPathname.current ?? null,
+        ...sanitizeParams(params),
+      });
+      previousPathname.current = pathname;
+    }
+  }, [pathname, params]);
+
   if (!fontsLoaded) return null;
 
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <Stack screenOptions={{ headerShown: false }} />
-    </ClerkProvider>
+    <PostHogProvider
+      client={posthog}
+      autocapture={{
+        captureScreens: false,
+        captureTouches: true,
+        propsToCapture: ["testID"],
+      }}
+    >
+      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+        <StatusBar style="dark" />
+        <Stack screenOptions={{ headerShown: false }} />
+      </ClerkProvider>
+    </PostHogProvider>
   );
 }
