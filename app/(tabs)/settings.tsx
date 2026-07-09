@@ -3,9 +3,17 @@ import { useClerk, useUser } from "@clerk/expo";
 import dayjs from "dayjs";
 import { useRouter } from "expo-router";
 import { styled } from "nativewind";
-import React from "react";
 import { usePostHog } from "posthog-react-native";
-import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
+import React from "react";
+import {
+  Alert,
+  Image,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
 
 const SafeAreaView = styled(RNSafeAreaView);
@@ -29,6 +37,20 @@ const Settings = () => {
   const { signOut } = useClerk();
   const router = useRouter();
   const posthog = usePostHog();
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await user?.reload();
+      posthog.capture("profile_refreshed");
+    } catch (err) {
+      // Keep showing the last-known profile data; just log the failure.
+      console.warn("Failed to refresh user info:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const onSignOut = async () => {
     try {
@@ -56,7 +78,18 @@ const Settings = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1 p-5"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#ea7a53"
+            colors={["#ea7a53"]}
+          />
+        }
+      >
         <Text className="mb-6 text-2xl font-sans-bold text-primary">
           Settings
         </Text>

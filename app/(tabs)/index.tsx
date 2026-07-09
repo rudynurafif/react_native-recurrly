@@ -48,10 +48,21 @@ export default function App() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    // Re-fetch from the API (falls back to dummy data if it's down).
-    await refresh();
-    posthog.capture("subscriptions_refreshed");
-    setRefreshing(false);
+    try {
+      // Refresh subscriptions and the signed-in user's profile in parallel.
+      // Each call already handles its own errors internally (subscriptions
+      // fall back to dummy data; user reload just logs and keeps stale data),
+      // so a failure in one never blocks or gets masked by the other.
+      await Promise.all([
+        refresh(),
+        user?.reload().catch((err) => {
+          console.warn("Failed to refresh user info:", err);
+        }),
+      ]);
+      posthog.capture("home_refreshed");
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const displayName =
