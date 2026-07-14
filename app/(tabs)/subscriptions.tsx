@@ -1,6 +1,6 @@
 import SubscriptionCard from "@/components/SubscriptionCard";
 import { icons } from "@/constants/icons";
-import { useSubscriptions } from "@/context/subscriptions";
+import { useSubscriptions } from "@/store/subscriptions";
 import { useRouter } from "expo-router";
 import { styled } from "nativewind";
 import React, { useMemo, useState } from "react";

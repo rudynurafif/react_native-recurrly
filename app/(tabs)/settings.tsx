@@ -58,7 +58,7 @@ const Settings = () => {
       await posthog.flush();
       posthog.reset();
       await signOut();
-      router.replace("/(auth)/sign-in");
+      router.replace("/onboarding");
     } catch (err) {
       console.error("Sign out failed:", err);
       Alert.alert("Sign out failed", "Please try again.");

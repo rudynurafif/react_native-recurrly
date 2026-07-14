@@ -220,7 +220,7 @@ const CreateSubscriptionModal = ({
               onPress={handleSubmit}
               disabled={!isValid}
               className={clsx(
-                "auth-button",
+                "auth-button", Platform.OS === "ios" && "mb-3",
                 !isValid && "auth-button-disabled",
               )}
             >

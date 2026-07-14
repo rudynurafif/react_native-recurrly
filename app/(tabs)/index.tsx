@@ -5,7 +5,7 @@ import UpcomingSubscriptionCard from "@/components/UpcomingSubscriptionCard";
 import { HOME_BALANCE, UPCOMING_SUBSCRIPTIONS } from "@/constants/data";
 import { icons } from "@/constants/icons";
 import images from "@/constants/images";
-import { useSubscriptions } from "@/context/subscriptions";
+import { useSubscriptions } from "@/store/subscriptions";
 import "@/global.css";
 import { formatCurrency } from "@/lib/utils";
 import { useUser } from "@clerk/expo";
@@ -70,7 +70,7 @@ export default function App() {
     user?.firstName ??
     user?.username ??
     user?.primaryEmailAddress?.emailAddress ??
-    "there";
+    "Hi there";
 
   const avatarSource = user?.imageUrl ? { uri: user.imageUrl } : images.avatar;
 
