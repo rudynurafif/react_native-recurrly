@@ -1,4 +1,5 @@
 import AuthBrand from "@/components/AuthBrand";
+import { getClerkFieldError, getClerkGeneralError } from "@/lib/clerkErrors";
 import { useAuth, useSignUp } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import { styled } from "nativewind";
@@ -17,7 +18,7 @@ import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
 const SafeAreaView = styled(RNSafeAreaView);
 
 export default function SignUp() {
-  const { signUp, errors, fetchStatus } = useSignUp();
+  const { signUp, fetchStatus } = useSignUp();
   const { isSignedIn } = useAuth();
   const router = useRouter();
   const posthog = usePostHog();
@@ -26,18 +27,51 @@ export default function SignUp() {
   const [password, setPassword] = React.useState("");
   const [code, setCode] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
+  // Local error state — always fresh on mount, unlike Clerk's signal state
+  // which persists across navigation and isn't cleared by signUp.reset().
+  const [fieldErrors, setFieldErrors] = React.useState<{
+    emailAddress?: string;
+    password?: string;
+    code?: string;
+    general?: string;
+  }>({});
 
   const submitting = fetchStatus === "fetching";
 
+  // Clear any stale attempt state (e.g. a lingering "needs verification" status)
+  // left over from a previous visit to this screen.
+  React.useEffect(() => {
+    return () => {
+      signUp.reset();
+    };
+  }, [signUp]);
+
   const handleSubmit = async () => {
+    setFieldErrors({});
     const { error } = await signUp.password({ emailAddress, password });
-    if (error) return;
+    if (error) {
+      const emailMsg = getClerkFieldError(error, "email_address");
+      const passwordMsg = getClerkFieldError(error, "password");
+      setFieldErrors({
+        emailAddress: emailMsg,
+        password: passwordMsg,
+        general:
+          emailMsg || passwordMsg ? undefined : getClerkGeneralError(error),
+      });
+      return;
+    }
     await signUp.verifications.sendEmailCode();
   };
 
   const handleVerify = async () => {
+    setFieldErrors({});
     const { error } = await signUp.verifications.verifyEmailCode({ code });
-    if (error) return;
+    if (error) {
+      setFieldErrors({
+        code: getClerkFieldError(error, "code") ?? getClerkGeneralError(error),
+      });
+      return;
+    }
 
     if (signUp.status === "complete") {
       const email = (signUp.emailAddress ?? emailAddress).trim().toLowerCase();
@@ -89,10 +123,8 @@ export default function SignUp() {
                   keyboardType="number-pad"
                   className="auth-input"
                 />
-                {errors.fields.code ? (
-                  <Text className="auth-error">
-                    {errors.fields.code.message}
-                  </Text>
+                {fieldErrors.code ? (
+                  <Text className="auth-error">{fieldErrors.code}</Text>
                 ) : null}
               </View>
 
@@ -148,10 +180,8 @@ export default function SignUp() {
                 keyboardType="email-address"
                 className="auth-input"
               />
-              {errors.fields.emailAddress ? (
-                <Text className="auth-error">
-                  {errors.fields.emailAddress.message}
-                </Text>
+              {fieldErrors.emailAddress ? (
+                <Text className="auth-error">{fieldErrors.emailAddress}</Text>
               ) : null}
             </View>
 
@@ -177,16 +207,18 @@ export default function SignUp() {
                   </Text>
                 </Pressable>
               </View>
-              {errors.fields.password ? (
-                <Text className="auth-error">
-                  {errors.fields.password.message}
-                </Text>
+              {fieldErrors.password ? (
+                <Text className="auth-error">{fieldErrors.password}</Text>
               ) : (
                 <Text className="auth-helper">
                   Use at least 8 characters. Avoid common passwords.
                 </Text>
               )}
             </View>
+
+            {fieldErrors.general ? (
+              <Text className="auth-error">{fieldErrors.general}</Text>
+            ) : null}
 
             <Pressable
               onPress={handleSubmit}

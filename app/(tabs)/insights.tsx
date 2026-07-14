@@ -1,7 +1,7 @@
 import ListHeading from "@/components/ListHeading";
 import SubscriptionCard from "@/components/SubscriptionCard";
 import { icons } from "@/constants/icons";
-import { useSubscriptions } from "@/context/subscriptions";
+import { useSubscriptions } from "@/store/subscriptions";
 import { formatCurrency } from "@/lib/utils";
 import clsx from "clsx";
 import dayjs from "dayjs";

@@ -25,17 +25,19 @@ const Onboarding = () => {
       />
 
       {/* Copy + CTA */}
-      <SafeAreaView edges={["bottom"]} className="px-6 pb-2 pt-6">
-        <Text className="text-4xl font-sans-extrabold text-white">
-          Gain Financial Clarity
-        </Text>
-        <Text className="mt-3 text-lg font-sans-medium text-white/90">
-          Track, analyze and cancel with ease
-        </Text>
+      <SafeAreaView edges={["bottom"]} className="p-6">
+        <View className="items-center">
+          <Text className="text-4xl font-sans-extrabold text-white">
+            Gain Financial Clarity
+          </Text>
+          <Text className="mt-3 text-lg font-sans-medium text-white/90">
+            Track, analyze and cancel with ease
+          </Text>
+        </View>
 
         <Pressable
           onPress={() => router.replace("/(auth)/sign-in")}
-          className="mt-7 items-center rounded-full bg-white py-4"
+          className="mt-7 items-center rounded-full bg-white py-4 px-6 shadow-lg"
         >
           <Text className="text-base font-sans-bold text-primary">
             Get Started

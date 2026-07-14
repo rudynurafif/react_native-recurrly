@@ -7,6 +7,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -35,6 +36,12 @@ export const SubscriptionsProvider = ({
   const [source, setSource] = useState<Source>("dummy");
   const [loading, setLoading] = useState(false);
 
+  // Clerk's `getToken` isn't guaranteed referentially stable across renders.
+  // Reading it via a ref keeps `load`/`addSubscription` stable, so the effect
+  // below only re-runs when auth actually changes — not on every render.
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
+
   const load = useCallback(async () => {
     // API disabled or signed out → use bundled dummy data.
     if (!USE_API || !isSignedIn) {
@@ -45,7 +52,7 @@ export const SubscriptionsProvider = ({
 
     setLoading(true);
     try {
-      const token = await getToken();
+      const token = await getTokenRef.current();
       if (!token) throw new Error("No auth token");
       const data = await fetchSubscriptions(token);
       setSubscriptions(data);
@@ -58,7 +65,7 @@ export const SubscriptionsProvider = ({
     } finally {
       setLoading(false);
     }
-  }, [getToken, isSignedIn]);
+  }, [isSignedIn]);
 
   useEffect(() => {
     if (isLoaded) load();
@@ -69,7 +76,7 @@ export const SubscriptionsProvider = ({
       // When live, persist to the API and use the server's record.
       if (source === "api") {
         try {
-          const token = await getToken();
+          const token = await getTokenRef.current();
           if (token) {
             const created = await postSubscription(token, subscription);
             setSubscriptions((prev) => [created, ...prev]);
@@ -82,7 +89,7 @@ export const SubscriptionsProvider = ({
       // Dummy mode (or API create failed) → keep it in local state only.
       setSubscriptions((prev) => [subscription, ...prev]);
     },
-    [source, getToken],
+    [source],
   );
 
   const refresh = useCallback(async () => {

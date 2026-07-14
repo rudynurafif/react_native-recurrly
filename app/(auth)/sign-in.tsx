@@ -1,4 +1,5 @@
 import AuthBrand from "@/components/AuthBrand";
+import { getClerkFieldError, getClerkGeneralError } from "@/lib/clerkErrors";
 import { useSignIn } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import { styled } from "nativewind";
@@ -17,7 +18,7 @@ import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
 const SafeAreaView = styled(RNSafeAreaView);
 
 export default function SignIn() {
-  const { signIn, errors, fetchStatus } = useSignIn();
+  const { signIn, fetchStatus } = useSignIn();
   const router = useRouter();
   const posthog = usePostHog();
 
@@ -25,8 +26,24 @@ export default function SignIn() {
   const [password, setPassword] = React.useState("");
   const [code, setCode] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
+  // Local error state — always fresh on mount, unlike Clerk's signal state
+  // which persists across navigation and isn't cleared by signIn.reset().
+  const [fieldErrors, setFieldErrors] = React.useState<{
+    identifier?: string;
+    password?: string;
+    code?: string;
+    general?: string;
+  }>({});
 
   const submitting = fetchStatus === "fetching";
+
+  // Clear any stale attempt state (e.g. a lingering "needs verification" status)
+  // left over from a previous visit to this screen.
+  React.useEffect(() => {
+    return () => {
+      signIn.reset();
+    };
+  }, [signIn]);
 
   const finalize = async () => {
     const email = emailAddress.trim().toLowerCase();
@@ -45,11 +62,22 @@ export default function SignIn() {
   };
 
   const handleSubmit = async () => {
+    setFieldErrors({});
     const { error } = await signIn.password({
       identifier: emailAddress,
       password,
     });
-    if (error) return;
+    if (error) {
+      const identifier = getClerkFieldError(error, "identifier");
+      const passwordMsg = getClerkFieldError(error, "password");
+      setFieldErrors({
+        identifier,
+        password: passwordMsg,
+        general:
+          identifier || passwordMsg ? undefined : getClerkGeneralError(error),
+      });
+      return;
+    }
 
     if (signIn.status === "complete") {
       await finalize();
@@ -75,8 +103,14 @@ export default function SignIn() {
   };
 
   const handleVerify = async () => {
+    setFieldErrors({});
     const { error } = await signIn.mfa.verifyEmailCode({ code });
-    if (error) return;
+    if (error) {
+      setFieldErrors({
+        code: getClerkFieldError(error, "code") ?? getClerkGeneralError(error),
+      });
+      return;
+    }
     if (signIn.status === "complete") await finalize();
   };
 
@@ -109,10 +143,8 @@ export default function SignIn() {
                   keyboardType="number-pad"
                   className="auth-input"
                 />
-                {errors.fields.code ? (
-                  <Text className="auth-error">
-                    {errors.fields.code.message}
-                  </Text>
+                {fieldErrors.code ? (
+                  <Text className="auth-error">{fieldErrors.code}</Text>
                 ) : null}
               </View>
 
@@ -168,10 +200,8 @@ export default function SignIn() {
                 keyboardType="email-address"
                 className="auth-input"
               />
-              {errors.fields.identifier ? (
-                <Text className="auth-error">
-                  {errors.fields.identifier.message}
-                </Text>
+              {fieldErrors.identifier ? (
+                <Text className="auth-error">{fieldErrors.identifier}</Text>
               ) : null}
             </View>
 
@@ -197,12 +227,14 @@ export default function SignIn() {
                   </Text>
                 </Pressable>
               </View>
-              {errors.fields.password ? (
-                <Text className="auth-error">
-                  {errors.fields.password.message}
-                </Text>
+              {fieldErrors.password ? (
+                <Text className="auth-error">{fieldErrors.password}</Text>
               ) : null}
             </View>
+
+            {fieldErrors.general ? (
+              <Text className="auth-error">{fieldErrors.general}</Text>
+            ) : null}
 
             <Pressable
               onPress={handleSubmit}
